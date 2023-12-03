@@ -1,3 +1,31 @@
+<?php
+
+include("config.php");
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = $_POST["username"];
+    $password = $_POST["password"];
+
+    $stmt = $conn->prepare("SELECT * FROM login WHERE Username = ? AND Password = ?");
+    $stmt->bind_param("ss", $username, $password);
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        session_start();
+        $_SESSION["username"] = $username;
+        header("Location: home.php");
+        exit();
+    } else {
+        $error_message = "Invalid username or password";
+    }
+
+    $stmt->close();
+    $conn->close();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,6 +43,13 @@
       margin: auto;
       margin-top: 100px;
     }
+
+    .error_msg {
+      text-align: center;
+      font-size: 0.8rem;
+      color: red;
+      margin-top: 0.9rem;
+    }
     
   </style>
 </head>
@@ -22,7 +57,7 @@
 
 <div class="container login-container">
   <h2 class="text-center mb-4">Login</h2>
-  <form action="verify.php" method="post">
+  <form action="" method="post">
     <div class="form-group">
       <label for="username">Username:</label>
       <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username">
@@ -41,3 +76,8 @@
 
 </body>
 </html>
+
+<?php if (isset($error_message)) : ?>
+  <h1 class="error_msg"><?php echo $error_message; ?></h1>
+<?php endif; ?>
+
